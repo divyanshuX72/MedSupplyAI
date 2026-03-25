@@ -409,7 +409,7 @@ const VoiceModule = {
 
                     <div class="voice-popup-row">
                         <span class="label">Price:</span>
-                        <span class="value text-green-400">$${medicine.price.toFixed(2)}</span>
+                        <span class="value text-green-400">₹${medicine.price.toFixed(2)}</span>
                     </div>
 
                     <div class="voice-popup-row">
@@ -583,9 +583,9 @@ const VoiceModule = {
                 <div class="flex justify-between items-center p-2 bg-white/5 rounded">
                     <div>
                         <p class="font-semibold">${item.name}</p>
-                        <p class="text-xs text-gray-400">${item.quantity} × $${item.price.toFixed(2)}</p>
+                        <p class="text-xs text-gray-400">${item.quantity} × ₹${item.price.toFixed(2)}</p>
                     </div>
-                    <p class="font-bold text-green-400">$${itemTotal.toFixed(2)}</p>
+                    <p class="font-bold text-green-400">₹${itemTotal.toFixed(2)}</p>
                 </div>
             `;
         });
@@ -594,7 +594,7 @@ const VoiceModule = {
             <div class="mt-4 pt-2 border-t border-white/20">
                 <div class="flex justify-between items-center">
                     <span class="font-bold">Total:</span>
-                    <span class="text-xl font-bold text-green-400">$${total.toFixed(2)}</span>
+                    <span class="text-xl font-bold text-green-400">₹${total.toFixed(2)}</span>
                 </div>
             </div>`;
 
@@ -614,7 +614,7 @@ const VoiceModule = {
         const items = this.billingCart.map(item => {
             const itemTotal = item.quantity * item.price;
             total += itemTotal;
-            return `${item.name}: ${item.quantity} × $${item.price} = $${itemTotal.toFixed(2)}`;
+            return `${item.name}: ${item.quantity} × ₹${item.price} = ₹${itemTotal.toFixed(2)}`;
         });
 
         const invoice = `
@@ -622,12 +622,12 @@ INVOICE
 ================
 ${items.join('\n')}
 ================
-Total: $${total.toFixed(2)}
+Total: ₹${total.toFixed(2)}
 Generated: ${new Date().toLocaleString()}
         `;
 
-        NotificationsModule.show(`Voice: Invoice generated. Total: $${total.toFixed(2)}`, 'success');
-        this.speakText(`Invoice generated. Total amount is ${total.toFixed(2)} dollars`);
+        NotificationsModule.show(`Voice: Invoice generated. Total: ₹${total.toFixed(2)}`, 'success');
+        this.speakText(`Invoice generated. Total amount is ${total.toFixed(2)} rupees`);
         
         // Reset billing
         this.cancelBillingMode();

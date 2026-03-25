@@ -31,18 +31,18 @@ const Helpers = {
      * @param {string} currency - Currency symbol
      * @returns {string}
      */
-    formatCurrency(amount, currency = '$') {
+    formatCurrency(amount, currency = '₹') {
         if (amount >= 1_000_000_000) {
             return `${currency}${(amount / 1_000_000_000).toFixed(2)}B`;
         }
         if (amount >= 1_000_000) {
             return `${currency}${(amount / 1_000_000).toFixed(2)}M`;
         }
-        return new Intl.NumberFormat('en-US', {
+        return new Intl.NumberFormat('en-IN', {
             style: 'currency',
-            currency: 'USD',
+            currency: 'INR',
             minimumFractionDigits: 2
-        }).format(amount).replace('$', currency);
+        }).format(amount).replace('₹', currency);
     },
 
     /**

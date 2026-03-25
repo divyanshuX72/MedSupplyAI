@@ -173,7 +173,7 @@ const AnalyticsModule = {
                             <p class="text-gray-400 text-sm font-medium">Total Profit (30d)</p>
                             <p class="text-2xl font-bold text-emerald-400 mt-2">${Helpers.formatCurrency(profit)}</p>
                         </div>
-                        <i data-lucide="dollar-sign" class="w-8 h-8 text-emerald-400/50"></i>
+                        <i data-lucide="indian-rupee" class="w-8 h-8 text-emerald-400/50"></i>
                     </div>
                 </div>
                 <div class="bg-gradient-to-br from-yellow-600/20 to-orange-600/20 border border-yellow-500/30 rounded-lg p-4">

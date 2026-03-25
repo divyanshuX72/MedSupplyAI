@@ -82,7 +82,7 @@ const ProcurementModule = {
                         </div>
                          <div>
                             <span class="text-slate-400">Cost:</span>
-                            <span class="font-bold text-emerald-300">$${order.estimated_cost}</span>
+                            <span class="font-bold text-emerald-300">₹${order.estimated_cost}</span>
                         </div>
                     </div>
                     

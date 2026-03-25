@@ -202,11 +202,11 @@ const AdminModule = {
                                 oninput="AdminModule.handleQtyChange(${i.id}, this.value, ${i.unit_price})"
                                 class="w-24 bg-black/20 border border-white/10 rounded px-3 py-1.5 text-cyan-400 font-bold focus:outline-none focus:border-cyan-500 transition-colors"
                             >
-                            <span class="text-[10px] text-slate-500 font-mono pl-1">$${i.unit_price}/unit</span>
+                            <span class="text-[10px] text-slate-500 font-mono pl-1">₹${i.unit_price}/unit</span>
                         </div>
                     </td>
                     <td class="p-4">
-                        <div id="total-cost-${i.id}" class="text-lg font-bold text-white">$${parseFloat(i.total_cost || (i.suggested_qty * i.unit_price)).toFixed(2)}</div>
+                        <div id="total-cost-${i.id}" class="text-lg font-bold text-white">₹${parseFloat(i.total_cost || (i.suggested_qty * i.unit_price)).toFixed(2)}</div>
                     </td>
                     <td class="p-4">
                         <span id="status-badge-${i.id}" class="status-badge px-2 py-1 rounded text-[10px] font-bold ${this.getStatusBadgeClass(i.status)}">
@@ -246,7 +246,7 @@ const AdminModule = {
 
     handleQtyChange(id, qty, unitPrice) {
         const total = (parseFloat(qty || 0) * unitPrice).toFixed(2);
-        document.getElementById(`total-cost-${id}`).textContent = `$${total}`;
+        document.getElementById(`total-cost-${id}`).textContent = `₹${total}`;
 
         // Debounce API update
         if (this.qtyTimeout) clearTimeout(this.qtyTimeout);
@@ -329,7 +329,7 @@ const AdminModule = {
             const total = approved.reduce((sum, i) => sum + parseFloat(i.total_cost), 0);
 
             document.getElementById('confirm-approved-count').textContent = approved.length;
-            document.getElementById('confirm-total-amount').textContent = `$${total.toFixed(2)}`;
+            document.getElementById('confirm-total-amount').textContent = `₹${total.toFixed(2)}`;
             document.getElementById('invoice-confirm-modal').classList.remove('hidden');
 
         } catch (e) { console.error(e); }

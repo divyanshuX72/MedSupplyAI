@@ -195,7 +195,7 @@ const RenderModule = {
 
             <div class="glass-panel rounded-2xl p-6 bg-white/5 border border-white/10 stat-card">
                 <div class="flex justify-between items-start mb-4">
-                    <i data-lucide="dollar-sign" class="text-violet-400 w-6 h-6"></i>
+                    <i data-lucide="indian-rupee" class="text-violet-400 w-6 h-6"></i>
                     <span class="text-xs bg-black/20 px-2 py-1 rounded">Value</span>
                 </div>
                 <h3 class="text-slate-400 text-sm">Total Value</h3>

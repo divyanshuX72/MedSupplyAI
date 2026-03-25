@@ -556,7 +556,7 @@ const ScannerModule = {
         Helpers.getElement('scanner-result-code').textContent = `Code: ${code} `;
         Helpers.getElement('scanner-result-qty').textContent = `×${item.quantity} `;
         Helpers.getElement('scanner-result-stock').textContent = `${product.stock} units`;
-        Helpers.getElement('scanner-result-price').textContent = `$${price.toFixed(2)} `;
+        Helpers.getElement('scanner-result-price').textContent = `₹${price.toFixed(2)} `;
         Helpers.getElement('scanner-result-location').textContent = product.location || 'Unsorted';
         Helpers.getElement('scanner-result-expiry').textContent = expiryDate;
 
