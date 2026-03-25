@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analytics & Reports - MedicineSupply.ai</title>
+
+    <!-- External Libraries -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        /* Standalone overrides */
+        body {
+            background-color: #0f172a;
+            color: white;
+        }
+
+        .canvas-container {
+            position: relative;
+            height: 300px;
+        }
+    </style>
+</head>
+
+<body class="bg-[#0f172a] text-white selection:bg-cyan-500/30 overflow-y-auto custom-scrollbar">
+
+    <!-- Background Effects -->
+    <!-- Sidebar (Rendered by JS) -->
+    <aside id="app-sidebar"
+        class="w-20 lg:w-64 flex-shrink-0 border-r border-white/5 bg-slate-900/50 backdrop-blur-md flex flex-col justify-between p-4 z-20 overflow-y-auto custom-scrollbar">
+    </aside>
+
+    <!-- Main Content -->
+    <div class="relative z-10 container mx-auto p-4 lg:p-8">
+
+        <!-- Header -->
+        <header class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4 border-b border-white/10 pb-6">
+            <div class="flex items-center gap-4">
+                <a href="/dashboard" class="p-2 bg-white/5 rounded-lg hover:bg-white/10 transition-colors">
+                    <i data-lucide="arrow-left" class="w-6 h-6"></i>
+                </a>
+                <div>
+                    <h1 class="text-3xl font-bold flex items-center gap-3">
+                        <i data-lucide="bar-chart-3" class="text-cyan-400 w-8 h-8"></i>
+                        Advanced Analytics & Reports
+                    </h1>
+                    <p class="text-slate-400">Deep insights into your hospital inventory performance.</p>
+                </div>
+            </div>
+
+            <div class="flex flex-wrap gap-3">
+                <button data-filter="today" onclick="AnalyticsModule.filter('today')"
+                    class="filter-btn active px-4 py-2 rounded-lg bg-cyan-600/30 border border-cyan-500/50 text-cyan-300 font-semibold hover:bg-cyan-600/50 transition">
+                    <i data-lucide="calendar" class="w-4 h-4 inline mr-2"></i>Today
+                </button>
+                <button data-filter="week" onclick="AnalyticsModule.filter('week')"
+                    class="filter-btn px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-white/70 hover:bg-white/10 transition">
+                    <i data-lucide="calendar-days" class="w-4 h-4 inline mr-2"></i>Week
+                </button>
+                <button data-filter="month" onclick="AnalyticsModule.filter('month')"
+                    class="filter-btn px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-white/70 hover:bg-white/10 transition">
+                    <i data-lucide="calendar-range" class="w-4 h-4 inline mr-2"></i>Month
+                </button>
+
+                <div class="w-px h-8 bg-white/10 mx-2"></div>
+
+                <button onclick="AnalyticsModule.exportPDF()"
+                    class="px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-white/70 hover:bg-white/10 transition">
+                    <i data-lucide="file-text" class="w-4 h-4 inline mr-2"></i>PDF
+                </button>
+                <button onclick="AnalyticsModule.exportExcel()"
+                    class="px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-white/70 hover:bg-white/10 transition">
+                    <i data-lucide="sheet" class="w-4 h-4 inline mr-2"></i>Excel
+                </button>
+                <button onclick="AnalyticsModule.shareWhatsApp()"
+                    class="px-4 py-2 rounded-lg bg-green-600/30 border border-green-500/50 text-green-300 hover:bg-green-600/50 transition">
+                    <i data-lucide="send" class="w-4 h-4 inline mr-2"></i>Share
+                </button>
+            </div>
+        </header>
+
+        <!-- Loading State -->
+        <div id="analytics-loading" class="text-center py-20 hidden">
+            <div class="w-16 h-16 border-4 border-cyan-500 border-t-transparent rounded-full animate-spin mx-auto mb-4">
+            </div>
+            <p class="text-lg text-cyan-400 animate-pulse">Analyzing Data...</p>
+        </div>
+
+        <!-- Dashboard Content -->
+        <div id="analytics-content" class="space-y-6 hidden">
+
+            <!-- KPI Cards Row 1: Sales Summary -->
+            <div>
+                <h3 class="text-lg font-bold mb-4 text-cyan-400 flex items-center gap-2">
+                    <i data-lucide="shopping-cart" class="w-5 h-5"></i>Sales Summary
+                </h3>
+                <div id="kpi-sales"></div>
+            </div>
+
+            <!-- KPI Cards Row 2: Profit Summary -->
+            <div>
+                <h3 class="text-lg font-bold mb-4 text-emerald-400 flex items-center gap-2">
+                    <i data-lucide="dollar-sign" class="w-5 h-5"></i>Profit Analysis
+                </h3>
+                <div id="kpi-profit"></div>
+            </div>
+
+            <!-- AI Predictions Section -->
+            <div id="ai-predictions-container">
+                <h3 class="text-lg font-bold mb-4 text-indigo-400 flex items-center gap-2">
+                    <i data-lucide="brain" class="w-5 h-5"></i>AI Insights & Predictions
+                </h3>
+                <div id="ai-predictions-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <!-- Populated dynamically -->
+                </div>
+            </div>
+
+            <!-- Charts Row 1 -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Sales Trend Chart -->
+                <div class="bg-white/5 border border-white/10 rounded-lg p-4">
+                    <h3 class="font-bold mb-4 flex items-center gap-2">
+                        <i data-lucide="line-chart" class="w-5 h-5 text-cyan-400"></i>Sales Trend
+                    </h3>
+                    <div class="canvas-container">
+                        <canvas id="sales-chart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Category Distribution -->
+                <div class="bg-white/5 border border-white/10 rounded-lg p-4">
+                    <h3 class="font-bold mb-4 flex items-center gap-2">
+                        <i data-lucide="pie-chart" class="w-5 h-5 text-purple-400"></i>Category Distribution
+                    </h3>
+                    <div class="canvas-container">
+                        <canvas id="category-chart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Top Selling Medicines -->
+            <div class="bg-white/5 border border-white/10 rounded-lg p-4">
+                <h3 class="text-lg font-bold mb-4 text-yellow-400 flex items-center gap-2">
+                    <i data-lucide="trending-up" class="w-5 h-5"></i>Top 10 Selling Medicines
+                </h3>
+                <div id="top-medicines"></div>
+            </div>
+
+            <!-- Charts Row 2 -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Profit Margin Chart -->
+                <div class="bg-white/5 border border-white/10 rounded-lg p-4">
+                    <h3 class="font-bold mb-4 flex items-center gap-2">
+                        <i data-lucide="bar-chart-3" class="w-5 h-5 text-green-400"></i>Profit Margin %
+                    </h3>
+                    <div class="canvas-container">
+                        <canvas id="profit-chart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Top Medicines Revenue -->
+                <div class="bg-white/5 border border-white/10 rounded-lg p-4">
+                    <h3 class="font-bold mb-4 flex items-center gap-2">
+                        <i data-lucide="bar-chart" class="w-5 h-5 text-orange-400"></i>Revenue by Medicine
+                    </h3>
+                    <div class="canvas-container">
+                        <canvas id="top-medicines-chart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Alerts Section -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Low Stock Alerts -->
+                <div class="bg-white/5 border border-white/10 rounded-lg p-4">
+                    <h3 class="text-lg font-bold mb-4 text-red-400 flex items-center gap-2">
+                        <i data-lucide="alert-circle" class="w-5 h-5"></i>Low Stock Alerts
+                    </h3>
+                    <div id="low-stock" class="max-h-64 overflow-y-auto custom-scrollbar"></div>
+                </div>
+
+                <!-- Expiry Alerts -->
+                <div class="bg-white/5 border border-white/10 rounded-lg p-4">
+                    <h3 class="text-lg font-bold mb-4 text-orange-400 flex items-center gap-2">
+                        <i data-lucide="calendar-x" class="w-5 h-5"></i>Expiry Alerts
+                    </h3>
+                    <div id="expiry-alerts" class="max-h-64 overflow-y-auto custom-scrollbar"></div>
+                </div>
+            </div>
+
+            <!-- Stock Movement -->
+            <div class="bg-white/5 border border-white/10 rounded-lg p-4">
+                <h3 class="text-lg font-bold mb-4 text-blue-400 flex items-center gap-2">
+                    <i data-lucide="zap" class="w-5 h-5"></i>Fast vs Slow Moving Stock
+                </h3>
+                <div id="stock-movement"></div>
+            </div>
+
+            <!-- Supplier & Customer Analytics Row -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Supplier Performance -->
+                <div class="bg-white/5 border border-white/10 rounded-lg p-4">
+                    <h3 class="text-lg font-bold mb-4 text-cyan-400 flex items-center gap-2">
+                        <i data-lucide="truck" class="w-5 h-5"></i>Supplier Performance
+                    </h3>
+                    <div id="supplier-analytics" class="max-h-64 overflow-y-auto custom-scrollbar"></div>
+                </div>
+
+                <!-- Customer Analytics -->
+                <div class="bg-white/5 border border-white/10 rounded-lg p-4">
+                    <h3 class="text-lg font-bold mb-4 text-purple-400 flex items-center gap-2">
+                        <i data-lucide="users" class="w-5 h-5"></i>Customer Analytics
+                    </h3>
+                    <div id="customer-analytics" class="max-h-64 overflow-y-auto custom-scrollbar"></div>
+                </div>
+            </div>
+
+            <!-- Charts Row 3 -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Expiry Timeline Chart -->
+                <div class="bg-white/5 border border-white/10 rounded-lg p-4">
+                    <h3 class="font-bold mb-4 flex items-center gap-2">
+                        <i data-lucide="clock" class="w-5 h-5 text-yellow-400"></i>Expiry Distribution
+                    </h3>
+                    <div class="canvas-container">
+                        <canvas id="expiry-chart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Credit Aging Chart -->
+                <div class="bg-white/5 border border-white/10 rounded-lg p-4">
+                    <h3 class="font-bold mb-4 flex items-center gap-2">
+                        <i data-lucide="layers" class="w-5 h-5 text-red-400"></i>Credit Aging
+                    </h3>
+                    <div class="canvas-container">
+                        <canvas id="credit-aging-chart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Credit/Udhaar Dashboard -->
+            <div class="bg-white/5 border border-white/10 rounded-lg p-4">
+                <h3 class="text-lg font-bold mb-4 text-red-400 flex items-center gap-2">
+                    <i data-lucide="credit-card" class="w-5 h-5"></i>Credit/Udhaar Dashboard
+                </h3>
+                <div id="credit-dashboard"></div>
+            </div>
+
+        </div>
+        <nav class="space-y-2" id="nav-container"></nav>
+
+    </div>
+
+    <!-- JavaScript Modules -->
+    <script src="js/utils/helpers.js"></script>
+    <script src="js/features/analytics.js"></script>
+    <script>
+        // Init logic specifically for standalone page
+        document.addEventListener('DOMContentLoaded', () => {
+            // Mock toggleVisibility since we don't have all modules here and we want simple loading
+            const loading = document.getElementById('analytics-loading');
+            const content = document.getElementById('analytics-content');
+
+            loading.classList.remove('hidden');
+
+            // Initialize Analytics
+            setTimeout(() => {
+                AnalyticsModule.init();
+
+                // Poll for data load (since init is async but doesn't return promise in current impl)
+                const interval = setInterval(() => {
+                    if (AnalyticsModule.data) {
+                        clearInterval(interval);
+                        loading.classList.add('hidden');
+                        content.classList.remove('hidden');
+                    }
+                }, 200);
+            }, 500);
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Barcodes (Code-128)</title>
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background-color: #f0fdf4;
+            padding: 40px;
+            font-family: sans-serif;
+        }
+
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 2rem;
+            text-align: center;
+            color: #166534;
+        }
+    </style>
+</head>
+
+<body class="max-w-2xl mx-auto">
+    <h1>Substitue Scanner Targets</h1>
+    <p class="text-center mb-8 text-slate-600">Scan these codes with the application to test the inventory update.</p>
+
+    <!-- Existing Item 1 -->
+    <div class="card">
+        <h2 class="font-bold text-xl mb-2">Paracetamol IV</h2>
+        <p class="text-sm text-gray-500 mb-4">Code: B-992 (Exists in DB)</p>
+        <svg id="barcode1"></svg>
+    </div>
+
+    <!-- Existing Item 2 -->
+    <div class="card">
+        <h2 class="font-bold text-xl mb-2">Insulin Glargine</h2>
+        <p class="text-sm text-gray-500 mb-4">Code: B-402 (Exists in DB)</p>
+        <svg id="barcode2"></svg>
+    </div>
+
+    <!-- New Item -->
+    <div class="card border-2 border-dashed border-blue-300">
+        <h2 class="font-bold text-xl mb-2 text-blue-600">New Product</h2>
+        <p class="text-sm text-gray-500 mb-4">Code: NEW-ITEM-001 (Will Create New Record)</p>
+        <svg id="barcode3"></svg>
+    </div>
+
+    <script>
+        JsBarcode("#barcode1", "B-992", { format: "CODE128", lineColor: "#000", width: 3, height: 80, displayValue: true });
+        JsBarcode("#barcode2", "B-402", { format: "CODE128", lineColor: "#000", width: 3, height: 80, displayValue: true });
+        JsBarcode("#barcode3", "NEW-ITEM-001", { format: "CODE128", lineColor: "#005a9c", width: 3, height: 80, displayValue: true });
+    </script>
+</body>
+
+</html>

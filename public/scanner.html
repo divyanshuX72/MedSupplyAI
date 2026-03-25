@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scanner - MedicineSupply.ai</title>
+
+    <!-- External Libraries -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@zxing/library@0.20.0/umd/index.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        /* Override modal styles to feel like a page */
+        #scanner-modal {
+            position: relative !important;
+            height: 100vh !important;
+            background: transparent !important;
+            animation: none !important;
+        }
+
+        /* Hide the close button in top right since we have 'Done' */
+        #scanner-modal .lucide-x {
+            display: none;
+        }
+    </style>
+</head>
+
+<body class="bg-[#0f172a] text-white overflow-hidden h-screen flex">
+
+    <!-- Sidebar -->
+    <aside id="app-sidebar" class="hidden lg:flex"></aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 relative flex flex-col h-screen">
+        <!-- Scanner UI will be injected here -->
+        <div id="modals-container" class="flex-1 relative z-10"></div>
+    </main>
+
+    <!-- Scripts -->
+    <script src="js/utils/helpers.js"></script>
+    <script src="js/data.js"></script>
+    <script src="js/ui/sidebar.js"></script>
+    <script src="js/features/scanner.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Initialize Sidebar
+            if (window.SidebarModule) {
+                SidebarModule.render('app-sidebar', 'scanner');
+            }
+
+            // Initialize Scanner
+            if (window.ScannerModule) {
+                // Initialize
+                ScannerModule.init();
+
+                // Override closeScanner to go back to dashboard
+                ScannerModule.closeScanner = function () {
+                    window.location.href = '/';
+                };
+
+                // Open immediately
+                ScannerModule.open();
+            }
+
+            // Initialize Lucide
+            if (window.lucide) {
+                lucide.createIcons();
+            }
+        });
+    </script>
+</body>
+
+</html>

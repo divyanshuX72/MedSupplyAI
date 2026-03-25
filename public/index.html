@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MedicineSupply.ai - Intelligent Hospital Inventory</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .hero-glow {
+            background: radial-gradient(circle at center, rgba(6, 182, 212, 0.15) 0%, rgba(15, 23, 42, 0) 70%);
+        }
+    </style>
+</head>
+
+<body class="bg-[#0f172a] text-white font-['Inter'] selection:bg-cyan-500/30 min-h-screen flex flex-col">
+
+    <!-- Navbar -->
+    <nav class="fixed w-full z-50 backdrop-blur-md border-b border-white/5 bg-[#0f172a]/80">
+        <div class="max-w-7xl mx-auto px-6 h-20 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div
+                    class="w-10 h-10 rounded-xl flex items-center justify-center bg-gradient-to-br from-cyan-400 to-blue-600 shadow-lg shadow-cyan-500/20">
+                    <i data-lucide="activity" class="text-white w-6 h-6"></i>
+                </div>
+                <span class="font-bold text-xl tracking-tight">Medicine<span
+                        class="text-cyan-400">Supply.ai</span></span>
+            </div>
+            <div class="flex items-center gap-4">
+                <a href="/login" class="text-slate-300 hover:text-white font-medium transition-colors">Login</a>
+                <a href="/signup"
+                    class="px-5 py-2.5 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-[#0f172a] font-bold transition-all shadow-lg shadow-cyan-500/20 hover:scale-105">
+                    Get Started
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <main class="flex-grow pt-32 pb-20 relative overflow-hidden">
+        <!-- Background Elements -->
+        <div class="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full hero-glow pointer-events-none"></div>
+        <div class="absolute top-20 right-0 w-96 h-96 bg-blue-600/20 rounded-full blur-[100px] pointer-events-none">
+        </div>
+        <div class="absolute bottom-0 left-0 w-96 h-96 bg-cyan-600/20 rounded-full blur-[100px] pointer-events-none">
+        </div>
+
+        <div class="max-w-7xl mx-auto px-6 relative z-10 text-center">
+            <div
+                class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 mb-8 animate-fade-in-up">
+                <span class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
+                <span class="text-sm font-medium text-cyan-300">AI Model v2.0 Live</span>
+            </div>
+
+            <h1
+                class="text-5xl md:text-7xl font-bold mb-8 leading-tight bg-clip-text text-transparent bg-gradient-to-b from-white to-slate-400">
+                The Future of Hospital<br>
+                <span class="text-cyan-400">Inventory Control</span>
+            </h1>
+
+            <p class="text-xl text-slate-400 mb-12 max-w-2xl mx-auto leading-relaxed">
+                Automate procurement, predict shortages, and manage stock with our
+                advanced AI-driven platform designed for modern healthcare facilities.
+            </p>
+
+            <div class="flex flex-col sm:flex-row justify-center gap-4 mb-20">
+                <a href="/signup"
+                    class="px-8 py-4 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold text-lg transition-all shadow-[0_0_40px_rgba(6,182,212,0.3)] hover:scale-105 flex items-center justify-center gap-2">
+                    Start Free Trial <i data-lucide="arrow-right" class="w-5 h-5"></i>
+                </a>
+                <a href="#features"
+                    class="px-8 py-4 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-white font-semibold text-lg transition-colors flex items-center justify-center gap-2">
+                    <i data-lucide="play-circle" class="w-5 h-5"></i> Watch Demo
+                </a>
+            </div>
+
+            <!-- Dashboard Preview -->
+            <div
+                class="relative max-w-5xl mx-auto rounded-2xl p-2 bg-gradient-to-b from-white/10 to-transparent backdrop-blur-sm">
+                <img src="/img/dashboard-preview.png" alt="Dashboard Preview"
+                    class="rounded-xl shadow-2xl border border-white/10 w-full h-auto bg-[#0f172a]/50 min-h-[400px]">
+                <div class="absolute inset-0 bg-gradient-to-t from-[#0f172a] via-transparent to-transparent"></div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Features Section -->
+    <section id="features" class="py-24 bg-black/20 border-t border-white/5">
+        <div class="max-w-7xl mx-auto px-6">
+            <h2 class="text-3xl md:text-4xl font-bold text-center mb-16">
+                Powered by <span class="text-purple-400">Intelligent Core™</span>
+            </h2>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <!-- Feature 1 -->
+                <div
+                    class="p-8 rounded-2xl bg-white/5 border border-white/10 hover:border-cyan-500/50 transition-colors group">
+                    <div
+                        class="w-12 h-12 rounded-lg bg-cyan-500/20 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                        <i data-lucide="brain" class="w-6 h-6 text-cyan-400"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-4">Predictive Analytics</h3>
+                    <p class="text-slate-400 leading-relaxed">
+                        Our AI analyzes historical data to forecast disease outbreaks and medicine demand weeks in
+                        advance.
+                    </p>
+                </div>
+
+                <!-- Feature 2 -->
+                <div
+                    class="p-8 rounded-2xl bg-white/5 border border-white/10 hover:border-emerald-500/50 transition-colors group">
+                    <div
+                        class="w-12 h-12 rounded-lg bg-emerald-500/20 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                        <i data-lucide="zap" class="w-6 h-6 text-emerald-400"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-4">Auto-Procurement</h3>
+                    <p class="text-slate-400 leading-relaxed">
+                        Automatically generate purchase orders when stock levels hit AI-calculated critical thresholds.
+                    </p>
+                </div>
+
+                <!-- Feature 3 -->
+                <div
+                    class="p-8 rounded-2xl bg-white/5 border border-white/10 hover:border-violet-500/50 transition-colors group">
+                    <div
+                        class="w-12 h-12 rounded-lg bg-violet-500/20 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                        <i data-lucide="mic" class="w-6 h-6 text-violet-400"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-4">Voice Command</h3>
+                    <p class="text-slate-400 leading-relaxed">
+                        Navigate the dashboard and manage inventory effectively completely hands-free.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="py-12 border-t border-white/5 text-center text-slate-500">
+        <div class="flex items-center justify-center gap-2 mb-4">
+            <i data-lucide="activity" class="w-5 h-5 text-slate-600"></i>
+            <span class="font-semibold text-slate-400">MedicineSupply.ai</span>
+        </div>
+        <p>© 2026 MedicineSupply.ai Inc. All rights reserved.</p>
+    </footer>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+
+</html>

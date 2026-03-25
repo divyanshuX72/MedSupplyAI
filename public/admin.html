@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - MedicineSupply.ai</title>
+    <!-- TailwindCSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/styles.css">
+    <!-- Html5-Qrcode Library -->
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+</head>
+
+<body class="bg-[#0f172a] text-white font-['Inter'] overflow-hidden h-screen flex">
+
+    <!-- Sidebar -->
+    <aside class="w-64 border-r border-white/5 bg-slate-900/50 backdrop-blur-md flex flex-col justify-between p-4 z-20">
+        <div>
+            <div class="flex items-center gap-3 px-2 mb-10">
+                <div
+                    class="w-10 h-10 rounded-xl flex items-center justify-center bg-gradient-to-br from-red-500 to-orange-600 shadow-lg shadow-red-500/20">
+                    <i data-lucide="shield" class="text-white w-6 h-6"></i>
+                </div>
+                <span class="font-bold text-xl tracking-tight">Admin<span class="text-red-400">Panel</span></span>
+            </div>
+
+            <nav class="space-y-1">
+                <button onclick="AdminModule.switchTab('dashboard')"
+                    class="admin-tab-btn active w-full flex items-center gap-4 px-4 py-3 rounded-xl transition-all text-left mb-1 text-red-400 bg-red-600/10 border border-red-500/30"
+                    data-tab="dashboard">
+                    <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
+                    <span>Dashboard</span>
+                </button>
+                <button onclick="AdminModule.switchTab('users')"
+                    class="admin-tab-btn w-full flex items-center gap-4 px-4 py-3 rounded-xl transition-all text-left mb-1 text-slate-400 hover:bg-white/5"
+                    data-tab="users">
+                    <i data-lucide="users" class="w-5 h-5"></i>
+                    <span>User Management</span>
+                </button>
+                <button onclick="AdminModule.switchTab('procurement')"
+                    class="admin-tab-btn w-full flex items-center gap-4 px-4 py-3 rounded-xl transition-all text-left mb-1 text-slate-400 hover:bg-white/5"
+                    data-tab="procurement">
+                    <i data-lucide="shopping-cart" class="w-5 h-5"></i>
+                    <span>Procurement Queue</span>
+                </button>
+                <button onclick="AdminModule.switchTab('inventory')"
+                    class="admin-tab-btn w-full flex items-center gap-4 px-4 py-3 rounded-xl transition-all text-left mb-1 text-slate-400 hover:bg-white/5"
+                    data-tab="inventory">
+                    <i data-lucide="package" class="w-5 h-5"></i>
+                    <span>Inventory Control</span>
+                </button>
+                <button onclick="AdminModule.switchTab('logs')"
+                    class="admin-tab-btn w-full flex items-center gap-4 px-4 py-3 rounded-xl transition-all text-left mb-1 text-slate-400 hover:bg-white/5"
+                    data-tab="logs">
+                    <i data-lucide="file-text" class="w-5 h-5"></i>
+                    <span>Audit Logs</span>
+                </button>
+                <button onclick="AdminModule.switchTab('registration')"
+                    class="admin-tab-btn w-full flex items-center gap-4 px-4 py-3 rounded-xl transition-all text-left mb-1 text-slate-400 hover:bg-white/5"
+                    data-tab="registration">
+                    <i data-lucide="clipboard-check" class="w-5 h-5"></i>
+                    <span>Registration Req.</span>
+                </button>
+                <button onclick="AdminModule.logout()"
+                    class="w-full flex items-center gap-4 px-4 py-3 rounded-xl transition-all text-left mb-1 text-red-400 hover:bg-red-500/10 mt-8 border border-transparent hover:border-red-500/20">
+                    <i data-lucide="log-out" class="w-5 h-5"></i>
+                    <span>Logout</span>
+                </button>
+            </nav>
+        </div>
+
+        <div class="p-4 bg-red-900/10 border border-red-500/20 rounded-xl">
+            <p class="text-xs text-red-400 font-mono mb-1">ADMIN SESSION</p>
+            <p id="admin-user-name" class="font-bold text-white text-lg truncate">Loading...</p>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 overflow-y-auto bg-[#0b1120] relative">
+        <div
+            class="absolute top-0 left-0 w-full h-96 bg-gradient-to-b from-red-900/10 to-transparent pointer-events-none">
+        </div>
+
+        <div class="p-8 max-w-7xl mx-auto relative z-10">
+
+            <!-- Dashboard Tab -->
+            <div id="tab-dashboard" class="admin-tab-content">
+                <h1 class="text-3xl font-bold mb-8">System Overview</h1>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    <!-- Stats Cards -->
+                    <div class="p-6 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm">
+                        <div class="flex justify-between items-start mb-4">
+                            <div class="p-3 rounded-lg bg-blue-500/10 text-blue-400"><i data-lucide="users"
+                                    class="w-6 h-6"></i></div>
+                            <span class="text-xs font-mono text-slate-400">TOTAL</span>
+                        </div>
+                        <h3 class="text-3xl font-bold text-white mb-1" id="stat-users">--</h3>
+                        <p class="text-sm text-slate-400">Registered Users</p>
+                    </div>
+
+                    <div class="p-6 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm">
+                        <div class="flex justify-between items-start mb-4">
+                            <div class="p-3 rounded-lg bg-emerald-500/10 text-emerald-400"><i data-lucide="pill"
+                                    class="w-6 h-6"></i></div>
+                            <span class="text-xs font-mono text-slate-400">TOTAL</span>
+                        </div>
+                        <h3 class="text-3xl font-bold text-white mb-1" id="stat-medicines">--</h3>
+                        <p class="text-sm text-slate-400">Medicines in Stock</p>
+                    </div>
+
+                    <div class="p-6 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm">
+                        <div class="flex justify-between items-start mb-4">
+                            <div class="p-3 rounded-lg bg-red-500/10 text-red-400"><i data-lucide="alert-triangle"
+                                    class="w-6 h-6"></i></div>
+                            <span class="text-xs font-mono text-red-400">ACTION</span>
+                        </div>
+                        <h3 class="text-3xl font-bold text-white mb-1" id="stat-low-stock">--</h3>
+                        <p class="text-sm text-slate-400">Low Stock Alerts</p>
+                    </div>
+
+                    <div class="p-6 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm">
+                        <div class="flex justify-between items-start mb-4">
+                            <div class="p-3 rounded-lg bg-purple-500/10 text-purple-400"><i data-lucide="shopping-bag"
+                                    class="w-6 h-6"></i></div>
+                            <span class="text-xs font-mono text-purple-400">AI QUEUE</span>
+                        </div>
+                        <h3 class="text-3xl font-bold text-white mb-1" id="stat-pending">--</h3>
+                        <p class="text-sm text-slate-400">Pending Orders</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Users Tab -->
+            <div id="tab-users" class="admin-tab-content hidden">
+                <h1 class="text-3xl font-bold mb-8">User Management</h1>
+                <div class="bg-white/5 border border-white/10 rounded-2xl overflow-hidden">
+                    <table class="w-full text-left">
+                        <thead class="bg-black/20 text-slate-400 text-xs uppercase tracking-wider">
+                            <tr>
+                                <th class="p-4">Name</th>
+                                <th class="p-4">Email</th>
+                                <th class="p-4">Role</th>
+                                <th class="p-4">Status</th>
+                                <th class="p-4">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="users-table-body" class="divide-y divide-white/5 text-sm">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Procurement Tab -->
+            <div id="tab-procurement" class="admin-tab-content hidden">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+                    <h1 class="text-3xl font-bold">AI Procurement Queue</h1>
+
+                    <!-- Global Actions Bar -->
+                    <div id="procurement-actions"
+                        class="flex flex-wrap gap-3 bg-slate-900/50 p-2 rounded-xl border border-white/10 backdrop-blur-md sticky top-0 z-20">
+                        <button onclick="AdminModule.bulkAction('approve')" id="btn-approve-bulk" disabled
+                            class="px-4 py-2 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/20 disabled:opacity-30 disabled:cursor-not-allowed transition-all flex items-center gap-2">
+                            <i data-lucide="check-circle" class="w-4 h-4"></i>
+                            <span>Approve Selected</span>
+                        </button>
+                        <button onclick="AdminModule.bulkAction('reject')" id="btn-reject-bulk" disabled
+                            class="px-4 py-2 rounded-lg bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20 disabled:opacity-30 disabled:cursor-not-allowed transition-all flex items-center gap-2">
+                            <i data-lucide="x-circle" class="w-4 h-4"></i>
+                            <span>Reject Selected</span>
+                        </button>
+                        <button onclick="AdminModule.showInvoiceConfirmation()" id="btn-create-invoice"
+                            class="px-4 py-2 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white font-bold transition-all shadow-lg shadow-cyan-500/20 flex items-center gap-2">
+                            <i data-lucide="file-text" class="w-4 h-4"></i>
+                            <span>Create Invoice & Send</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="bg-white/5 border border-white/10 rounded-2xl overflow-hidden">
+                    <table class="w-full text-left">
+                        <thead class="bg-black/20 text-slate-400 text-xs uppercase tracking-wider">
+                            <tr>
+                                <th class="p-4 w-12 text-center">
+                                    <input type="checkbox" id="procurement-select-all"
+                                        onchange="AdminModule.toggleSelectAllProcurement(this.checked)"
+                                        class="w-4 h-4 rounded border-white/10 bg-black/20 text-cyan-500 focus:ring-cyan-500">
+                                </th>
+                                <th class="p-4">Medicine</th>
+                                <th class="p-4">Stock</th>
+                                <th class="p-4 w-32">Order Qty</th>
+                                <th class="p-4">Total Cost</th>
+                                <th class="p-4">Status</th>
+                                <th class="p-4 text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="procurement-table-body" class="divide-y divide-white/5 text-sm">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Inventory Tab -->
+            <div id="tab-inventory" class="admin-tab-content hidden">
+                <h1 class="text-3xl font-bold mb-8">Inventory Control</h1>
+                <div class="bg-white/5 border border-white/10 rounded-2xl overflow-hidden">
+                    <table class="w-full text-left">
+                        <thead class="bg-black/20 text-slate-400 text-xs uppercase tracking-wider">
+                            <tr>
+                                <th class="p-4">Name</th>
+                                <th class="p-4">Stock</th>
+                                <th class="p-4">Expiry</th>
+                                <th class="p-4">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="inventory-table-body" class="divide-y divide-white/5 text-sm">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Logs Tab -->
+            <div id="tab-logs" class="admin-tab-content hidden">
+                <h1 class="text-3xl font-bold mb-8">System Audit Logs</h1>
+                <div class="bg-white/5 border border-white/10 rounded-2xl overflow-hidden">
+                    <table class="w-full text-left">
+                        <thead class="bg-black/20 text-slate-400 text-xs uppercase tracking-wider">
+                            <tr>
+                                <th class="p-4">Time</th>
+                                <th class="p-4">Admin</th>
+                                <th class="p-4">Action</th>
+                                <th class="p-4">Target</th>
+                                <th class="p-4">Details</th>
+                            </tr>
+                        </thead>
+                        <tbody id="logs-table-body" class="divide-y divide-white/5 text-sm">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Registration Requests Tab -->
+            <div id="tab-registration" class="admin-tab-content hidden">
+                <h1 class="text-3xl font-bold mb-8">Medicine Registration Requests</h1>
+                <div class="bg-white/5 border border-white/10 rounded-2xl overflow-hidden">
+                    <table class="w-full text-left">
+                        <thead class="bg-black/20 text-slate-400 text-xs uppercase tracking-wider">
+                            <tr>
+                                <th class="p-4">Barcode</th>
+                                <th class="p-4">Medicine Name</th>
+                                <th class="p-4">Source</th>
+                                <th class="p-4">Requested At</th>
+                                <th class="p-4 text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="registration-table-body" class="divide-y divide-white/5 text-sm">
+                            <tr>
+                                <td colspan="5" class="p-8 text-center text-slate-500 italic">No pending registration
+                                    requests</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Modals -->
+    <!-- Edit Inventory Modal -->
+    <div id="edit-inventory-modal"
+        class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-white/10 rounded-2xl w-full max-w-md p-6">
+            <h3 class="text-xl font-bold mb-4">Edit Stock</h3>
+            <input type="hidden" id="edit-id">
+            <div class="space-y-4">
+                <!-- Barcode Field (New) -->
+                <div>
+                    <label class="text-sm text-slate-400 block mb-1">Barcode</label>
+                    <div class="flex gap-2">
+                        <input type="text" id="edit-barcode"
+                            class="flex-1 bg-black/20 border border-white/10 rounded-lg p-3 text-white font-mono"
+                            placeholder="Scan or type barcode" oninput="AdminModule.handleBarcodeInput(this.value)">
+
+                        <button type="button" id="btn-scan-edit" onclick="AdminModule.startEditScan()"
+                            class="p-3 rounded-lg bg-blue-500/10 text-blue-400 border border-blue-500/20 hover:bg-blue-500/20 transition-all">
+                            <i data-lucide="scan" class="w-5 h-5"></i>
+                        </button>
+                    </div>
+                    <p id="edit-barcode-status" class="text-xs mt-1 text-slate-500 min-h-[20px]"></p>
+                </div>
+                <div>
+                    <label class="text-sm text-slate-400 block mb-1">New Stock Quantity</label>
+                    <input type="number" id="edit-stock"
+                        class="w-full bg-black/20 border border-white/10 rounded-lg p-3 text-white">
+                </div>
+                <div>
+                    <label class="text-sm text-slate-400 block mb-1">Expiry Date</label>
+                    <input type="date" id="edit-expiry"
+                        class="w-full bg-black/20 border border-white/10 rounded-lg p-3 text-white">
+                </div>
+            </div>
+            <div class="flex gap-3 mt-6">
+                <button onclick="document.getElementById('edit-inventory-modal').classList.add('hidden')"
+                    class="flex-1 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400">Cancel</button>
+                <button onclick="AdminModule.saveInventory()"
+                    class="flex-1 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold">Save
+                    Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Approval Modal -->
+    <div id="approval-modal"
+        class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-white/10 rounded-2xl w-full max-w-lg p-6">
+            <h3 class="text-xl font-bold mb-4">Register & Approve Medicine</h3>
+            <input type="hidden" id="approval-request-id">
+            <div class="grid grid-cols-2 gap-4">
+                <div class="col-span-2">
+                    <label class="text-sm text-slate-400 block mb-1">Medicine Name</label>
+                    <input type="text" id="approval-name"
+                        class="w-full bg-black/20 border border-white/10 rounded-lg p-3 text-white">
+                </div>
+                <div>
+                    <label class="text-sm text-slate-400 block mb-1">Category</label>
+                    <select id="approval-category"
+                        class="w-full bg-black/20 border border-white/10 rounded-lg p-3 text-white">
+                        <option value="General">General</option>
+                        <option value="Antibiotic">Antibiotic</option>
+                        <option value="Critical">Critical</option>
+                        <option value="Cardiac">Cardiac</option>
+                        <option value="Diabetes">Diabetes</option>
+                        <option value="Surgery">Surgery</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="text-sm text-slate-400 block mb-1">Unit Price ($)</label>
+                    <input type="number" step="0.01" id="approval-price"
+                        class="w-full bg-black/20 border border-white/10 rounded-lg p-3 text-white">
+                </div>
+                <div>
+                    <label class="text-sm text-slate-400 block mb-1">Storage Location</label>
+                    <input type="text" id="approval-location"
+                        class="w-full bg-black/20 border border-white/10 rounded-lg p-3 text-white"
+                        placeholder="e.g. Rack A-12">
+                </div>
+                <div>
+                    <label class="text-sm text-slate-400 block mb-1">Batch Number</label>
+                    <input type="text" id="approval-batch"
+                        class="w-full bg-black/20 border border-white/10 rounded-lg p-3 text-white"
+                        placeholder="e.g. BATCH-2024-001">
+                </div>
+                <div>
+                    <label class="text-sm text-slate-400 block mb-1">Expiry Date</label>
+                    <input type="date" id="approval-expiry"
+                        class="w-full bg-black/20 border border-white/10 rounded-lg p-3 text-white">
+                </div>
+                <div class="col-span-2">
+                    <label class="text-sm text-slate-400 block mb-1">Manufacturer</label>
+                    <input type="text" id="approval-manufacturer"
+                        class="w-full bg-black/20 border border-white/10 rounded-lg p-3 text-white">
+                </div>
+            </div>
+            <div class="flex gap-3 mt-8">
+                <button onclick="document.getElementById('approval-modal').classList.add('hidden')"
+                    class="flex-1 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 font-bold transition-all">Cancel</button>
+                <button onclick="AdminModule.confirmRegistrationApproval()"
+                    class="flex-1 py-3 rounded-xl bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-500 hover:to-green-500 text-white font-bold transition-all shadow-lg shadow-emerald-500/20">Register
+                    Medicine</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Invoice Confirmation Modal -->
+    <div id="invoice-confirm-modal"
+        class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-white/10 rounded-2xl w-full max-w-md p-6">
+            <div class="flex items-center gap-4 mb-6">
+                <div class="p-3 rounded-full bg-cyan-500/10 text-cyan-400">
+                    <i data-lucide="file-check" class="w-8 h-8"></i>
+                </div>
+                <div>
+                    <h3 class="text-xl font-bold text-white">Generate Invoice?</h3>
+                    <p class="text-sm text-slate-400">This will finalize all APPROVED items.</p>
+                </div>
+            </div>
+
+            <div class="bg-black/20 rounded-xl p-4 mb-6 border border-white/5">
+                <div class="flex justify-between text-sm mb-2">
+                    <span class="text-slate-400">Approved Items:</span>
+                    <span id="confirm-approved-count" class="text-white font-bold">0</span>
+                </div>
+                <div class="flex justify-between text-lg">
+                    <span class="text-slate-400">Grand Total:</span>
+                    <span id="confirm-total-amount" class="text-cyan-400 font-bold">$0.00</span>
+                </div>
+            </div>
+
+            <div class="flex gap-3">
+                <button onclick="document.getElementById('invoice-confirm-modal').classList.add('hidden')"
+                    class="flex-1 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 font-bold">Cancel</button>
+                <button onclick="AdminModule.confirmInvoiceCreation()"
+                    class="flex-1 py-3 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold shadow-lg shadow-cyan-500/20">Generate
+                    & Send</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scanner Modal for Camera -->
+    <div id="scanner-modal"
+        class="hidden fixed inset-0 bg-black/90 z-[60] flex flex-col items-center justify-center p-4">
+        <div class="relative w-full max-w-md bg-black rounded-2xl overflow-hidden border border-white/10 shadow-2xl">
+            <div id="reader" class="w-full aspect-square bg-black"></div>
+            <button onclick="AdminModule.stopEditScan()"
+                class="absolute top-4 right-4 p-2 bg-black/50 hover:bg-black/70 rounded-full text-white transition-all">
+                <i data-lucide="x" class="w-6 h-6"></i>
+            </button>
+            <div class="absolute bottom-0 inset-x-0 p-4 bg-gradient-to-t from-black to-transparent text-center">
+                <p class="text-white font-bold mb-1">Scanning...</p>
+                <p class="text-xs text-slate-400">Point camera at a barcode</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/features/admin.js"></script>
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+
+</html>
