@@ -1,0 +1,32 @@
+# Dependencies
+node_modules/
+
+# Environment variables (NEVER push to GitHub)
+.env
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE / Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Temporary files
+fix-db*.js
+create_db.js
+create_user.js
+migrate_branches.js
+audit_database.js
+
+# Build output
+dist/
+build/

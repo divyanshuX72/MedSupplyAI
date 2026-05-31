@@ -186,10 +186,10 @@ app.get('/api/db-check', async (req, res) => {
     }
 });
 
-// GET: Fetch all medicines
-app.get('/api/inventory', async (req, res) => {
+// GET: Fetch all medicines (scoped to logged-in user)
+app.get('/api/inventory', authenticateToken, async (req, res) => {
     try {
-        const result = await db.query('SELECT * FROM medicines ORDER BY id ASC');
+        const result = await db.query('SELECT * FROM medicines WHERE user_id = ? ORDER BY id ASC', [req.user.id]);
         res.json(result.rows);
     } catch (err) {
         console.error(err);
@@ -197,9 +197,10 @@ app.get('/api/inventory', async (req, res) => {
     }
 });
 
-// GET: Comprehensive Analytics Dashboard
-app.get('/api/analytics/dashboard', async (req, res) => {
+// GET: Comprehensive Analytics Dashboard (scoped to user)
+app.get('/api/analytics/dashboard', authenticateToken, async (req, res) => {
     try {
+        const userId = req.user.id;
         // Parallel execution of all analytics queries for performance
         const [
             salesSummary,
@@ -423,7 +424,7 @@ app.get('/api/analytics/dashboard', async (req, res) => {
 });
 
 // POST: Add new medicine
-app.post('/api/inventory', async (req, res) => {
+app.post('/api/inventory', authenticateToken, async (req, res) => {
     const { name, category, stock, price, location, expiry, manufacturer, batch, barcode } = req.body;
 
     // Basic validation
@@ -436,18 +437,17 @@ app.post('/api/inventory', async (req, res) => {
     try {
         await connection.beginTransaction();
 
-        // 1. Get or Create Master Medicine
-        // Logic: Check if Master exists by Name + Manufacturer
+        // 1. Get or Create Master Medicine (scoped to this user)
         let [medicine] = await connection.execute(
-            'SELECT id FROM medicines WHERE name = ? AND manufacturer = ?',
-            [name, manufacturer]
+            'SELECT id FROM medicines WHERE name = ? AND manufacturer = ? AND user_id = ?',
+            [name, manufacturer, req.user.id]
         );
 
         let medicineId;
         if (medicine.length === 0) {
             const [res] = await connection.execute(
-                'INSERT INTO medicines (name, category, manufacturer, price) VALUES (?, ?, ?, ?)',
-                [name, category, manufacturer, price]
+                'INSERT INTO medicines (name, category, manufacturer, price, user_id) VALUES (?, ?, ?, ?, ?)',
+                [name, category, manufacturer, price, req.user.id]
             );
             medicineId = res.insertId;
         } else {
@@ -460,9 +460,9 @@ app.post('/api/inventory', async (req, res) => {
 
         const [batchRes] = await connection.execute(`
             INSERT INTO medicine_batches 
-            (medicine_id, batch_number, barcode, quantity, location, expiry_date)
-            VALUES (?, ?, ?, ?, ?, ?)
-        `, [medicineId, finalBatch, barcode, stock, location, expiry]);
+            (medicine_id, batch_number, barcode, quantity, location, expiry_date, user_id)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        `, [medicineId, finalBatch, barcode, stock, location, expiry, req.user.id]);
 
         await connection.commit();
 
@@ -484,7 +484,7 @@ app.post('/api/inventory', async (req, res) => {
 });
 
 // PUT: Update medicine
-app.put('/api/inventory/:id', async (req, res) => {
+app.put('/api/inventory/:id', authenticateToken, async (req, res) => {
     const { id } = req.params;
     const { name, category, stock, price, location, expiry, manufacturer, batch, barcode } = req.body;
 
@@ -496,16 +496,16 @@ app.put('/api/inventory/:id', async (req, res) => {
         const query = `
             UPDATE medicines 
             SET name = ?, category = ?, stock = ?, price = ?, location = ?, expiry_date = ?, manufacturer = ?, batch_number = ?, barcode = ?
-            WHERE id = ?
+            WHERE id = ? AND user_id = ?
         `;
-        const values = [name, category, stock, price, location, expiry, manufacturer, batch, barcode || null, id];
+        const values = [name, category, stock, price, location, expiry, manufacturer, batch, barcode || null, id, req.user.id];
         const result = await db.query(query, values);
 
-        if (result.rowCount === 0) { // Changed from rows.length for UPDATE
+        if (result.rowCount === 0) {
             return res.status(404).json({ error: 'Medicine not found' });
         }
 
-        const updatedItem = await db.query('SELECT * FROM medicines WHERE id = ?', [id]);
+        const updatedItem = await db.query('SELECT * FROM medicines WHERE id = ? AND user_id = ?', [id, req.user.id]);
         res.json(updatedItem.rows[0]);
     } catch (err) {
         console.error(err);
@@ -513,8 +513,8 @@ app.put('/api/inventory/:id', async (req, res) => {
     }
 });
 
-// GET: Fetch by Barcode (New Endpoint)
-app.get('/api/inventory/scan/:barcode', async (req, res) => {
+// GET: Fetch by Barcode (scoped to user)
+app.get('/api/inventory/scan/:barcode', authenticateToken, async (req, res) => {
     const { barcode } = req.params;
     try {
         const result = await db.query(`
@@ -532,14 +532,14 @@ app.get('/api/inventory/scan/:barcode', async (req, res) => {
                 m.id as medicine_master_id
             FROM medicine_batches mb
             JOIN medicines m ON m.id = mb.medicine_id
-            WHERE mb.barcode = ?
-        `, [barcode]);
+            WHERE mb.barcode = ? AND mb.user_id = ?
+        `, [barcode, req.user.id]);
 
         if (result.rows.length > 0) {
             res.json(result.rows[0]);
         } else {
-            // Fallback: Check if barcode exists in Master (Migrated legacy or error)
-            const masterCheck = await db.query('SELECT * FROM medicines WHERE barcode = ?', [barcode]);
+            // Fallback: Check medicines table
+            const masterCheck = await db.query('SELECT * FROM medicines WHERE barcode = ? AND user_id = ?', [barcode, req.user.id]);
             if (masterCheck.rows.length > 0) {
                 res.json(masterCheck.rows[0]);
             } else {
@@ -553,26 +553,39 @@ app.get('/api/inventory/scan/:barcode', async (req, res) => {
 });
 
 
-// POST: Seed Database
-app.post('/api/seed', async (req, res) => {
+// POST: Seed Database (scoped to logged-in user)
+app.post('/api/seed', authenticateToken, async (req, res) => {
     try {
-        // Check if DB is empty
-        const countResult = await db.query('SELECT COUNT(*) as count FROM medicines');
+        // Check if this user's DB is empty
+        const countResult = await db.query('SELECT COUNT(*) as count FROM medicines WHERE user_id = ?', [req.user.id]);
         const count = parseInt(countResult.rows[0].count);
 
         if (count > 0) {
             return res.json({ message: 'Database already has data', count });
         }
 
-        console.log('Seeding database with sample data...');
+        console.log(`Seeding database for user ${req.user.id}...`);
 
-        // Insert sample data
+        const SAMPLE_MEDICINES = [
+            { batch: 'BATCH-001', name: 'Paracetamol 500mg', category: 'General', stock: 500, price: 2.50, location: 'Rack A-12', expiry: '2026-12-31', manufacturer: 'Sun Pharma' },
+            { batch: 'BATCH-002', name: 'Amoxicillin 250mg', category: 'Antibiotic', stock: 200, price: 8.00, location: 'Rack B-05', expiry: '2026-09-30', manufacturer: 'Cipla' },
+            { batch: 'BATCH-003', name: 'Metformin 500mg', category: 'Diabetes', stock: 350, price: 5.50, location: 'Rack A-12', expiry: '2027-03-31', manufacturer: 'Dr. Reddy\'s' },
+            { batch: 'BATCH-004', name: 'Atorvastatin 10mg', category: 'Cardiac', stock: 150, price: 12.00, location: 'Rack B-05', expiry: '2026-11-30', manufacturer: 'Lupin' },
+            { batch: 'BATCH-005', name: 'Insulin Glargine', category: 'Diabetes', stock: 80, price: 45.00, location: 'Cold Storage 1', expiry: '2026-08-31', manufacturer: 'Novo Nordisk' },
+            { batch: 'BATCH-006', name: 'Ceftriaxone 1g', category: 'Antibiotic', stock: 120, price: 35.00, location: 'Rack A-12', expiry: '2026-10-31', manufacturer: 'Pfizer' },
+            { batch: 'BATCH-007', name: 'Amlodipine 5mg', category: 'Cardiac', stock: 400, price: 4.00, location: 'Rack B-05', expiry: '2027-06-30', manufacturer: 'Sun Pharma' },
+            { batch: 'BATCH-008', name: 'Pantoprazole 40mg', category: 'General', stock: 300, price: 6.00, location: 'Rack A-12', expiry: '2027-01-31', manufacturer: 'Zydus' },
+            { batch: 'BATCH-009', name: 'Morphine Sulphate', category: 'Critical', stock: 30, price: 85.00, location: 'Fridge 1', expiry: '2026-07-31', manufacturer: 'Neon Labs' },
+            { batch: 'BATCH-010', name: 'Dolo 650', category: 'General', stock: 15, price: 3.00, location: 'Rack A-12', expiry: '2026-06-30', manufacturer: 'Micro Labs' },
+        ];
+
+        // Insert sample data with user_id
         for (const med of SAMPLE_MEDICINES) {
             const query = `
-                INSERT INTO medicines (batch_number, name, category, stock, price, location, expiry_date, manufacturer)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO medicines (batch_number, name, category, stock, price, location, expiry_date, manufacturer, user_id)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
             `;
-            const values = [med.batch, med.name, med.category, med.stock, med.price, med.location, med.expiry, med.manufacturer];
+            const values = [med.batch, med.name, med.category, med.stock, med.price, med.location, med.expiry, med.manufacturer, req.user.id];
             await db.query(query, values);
         }
 
@@ -582,6 +595,7 @@ app.post('/api/seed', async (req, res) => {
         res.status(500).json({ error: 'Failed to seed database' });
     }
 });
+
 
 // Initialize Database Schema on Start
 const initDB = async () => {
@@ -623,7 +637,7 @@ const initDB = async () => {
         await db.query(`
              CREATE TABLE IF NOT EXISTS medicines (
                 id INT AUTO_INCREMENT PRIMARY KEY, 
-                batch_number VARCHAR(50) UNIQUE NOT NULL, 
+                batch_number VARCHAR(50) NOT NULL, 
                 name VARCHAR(100) NOT NULL, 
                 category VARCHAR(50), 
                 stock INT DEFAULT 0, 
@@ -632,7 +646,25 @@ const initDB = async () => {
                 expiry_date DATE, 
                 manufacturer VARCHAR(100),
                 barcode VARCHAR(50),
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                user_id INT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+            )
+        `);
+
+        await db.query(`
+             CREATE TABLE IF NOT EXISTS medicine_batches (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                medicine_id INT,
+                batch_number VARCHAR(50) NOT NULL,
+                barcode VARCHAR(50),
+                quantity INT DEFAULT 0,
+                location VARCHAR(100),
+                expiry_date DATE,
+                user_id INT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (medicine_id) REFERENCES medicines(id),
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
             )
         `);
 
@@ -648,8 +680,17 @@ const initDB = async () => {
             )
         `);
 
-        // 3. Sales & Invoicing (Consolidated)
-        // Note: Invoices table dropped in cleanup. Future: Re-implement if needed.
+        await db.query(`
+            CREATE TABLE IF NOT EXISTS invoice_items (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                invoice_id INT,
+                medicine_id INT,
+                quantity INT NOT NULL,
+                price_at_sale DECIMAL(10, 2) NOT NULL,
+                FOREIGN KEY (invoice_id) REFERENCES invoices(id) ON DELETE CASCADE,
+                FOREIGN KEY (medicine_id) REFERENCES medicines(id)
+            )
+        `);
 
         // 4. AI Procurement & Supplier Invoicing
         // Unified into auto_procurement_queue
@@ -662,8 +703,9 @@ const initDB = async () => {
                 reason VARCHAR(255),
                 status ENUM('PENDING_REVIEW', 'APPROVED', 'REJECTED') DEFAULT 'PENDING_REVIEW',
                 source VARCHAR(50),
+                user_id INT,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                branch_id INT DEFAULT 1
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
             )
         `);
 
@@ -674,8 +716,10 @@ const initDB = async () => {
                 quantity INT,
                 estimated_cost DECIMAL(10, 2),
                 status VARCHAR(20) DEFAULT 'Pending',
+                user_id INT,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (medicine_id) REFERENCES medicines(id)
+                FOREIGN KEY (medicine_id) REFERENCES medicines(id),
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
             )
         `);
 
@@ -689,19 +733,6 @@ const initDB = async () => {
                 details TEXT,
                 timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (admin_id) REFERENCES users(id)
-            )
-        `);
-
-        await db.query(`
-             CREATE TABLE IF NOT EXISTS auto_procurement_queue (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                medicine_name VARCHAR(100),
-                barcode VARCHAR(50),
-                detected_quantity INT DEFAULT 1,
-                reason VARCHAR(255),
-                status ENUM('PENDING_REVIEW', 'APPROVED', 'REJECTED') DEFAULT 'PENDING_REVIEW',
-                source VARCHAR(50),
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         `);
 
@@ -720,6 +751,34 @@ const initDB = async () => {
             await db.query(`SELECT role FROM users LIMIT 1`);
         } catch (e) {
             await db.query(`ALTER TABLE users ADD COLUMN role VARCHAR(20) DEFAULT 'user';`);
+        }
+
+        // Add user_id column to medicines if missing (multi-tenant migration)
+        try {
+            await db.query(`SELECT user_id FROM medicines LIMIT 1`);
+        } catch (e) {
+            await db.query(`ALTER TABLE medicines ADD COLUMN user_id INT, ADD FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE;`);
+        }
+
+        // Add user_id column to medicine_batches if missing
+        try {
+            await db.query(`SELECT user_id FROM medicine_batches LIMIT 1`);
+        } catch (e) {
+            await db.query(`ALTER TABLE medicine_batches ADD COLUMN user_id INT, ADD FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE;`);
+        }
+
+        // Add user_id column to auto_procurement_queue if missing
+        try {
+            await db.query(`SELECT user_id FROM auto_procurement_queue LIMIT 1`);
+        } catch (e) {
+            await db.query(`ALTER TABLE auto_procurement_queue ADD COLUMN user_id INT, ADD FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE;`);
+        }
+
+        // Add user_id column to purchase_orders if missing
+        try {
+            await db.query(`SELECT user_id FROM purchase_orders LIMIT 1`);
+        } catch (e) {
+            await db.query(`ALTER TABLE purchase_orders ADD COLUMN user_id INT, ADD FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE;`);
         }
 
         console.log('>>> MIGRATION SUCCESSFUL: Schema Updated <<<');
@@ -1179,25 +1238,7 @@ app.patch('/api/admin/users/:id/status', authenticateToken, verifyAdmin, async (
     }
 });
 
-// GET: Inventory List (Branch Aware)
-app.get('/api/inventory', async (req, res) => {
-    try {
-        const branchId = req.query.branch_id || 1; // Default to Main Branch
-
-        // Return inventory for specific branch
-        const result = await db.query(`
-            SELECT * FROM medicines 
-            WHERE branch_id = ? 
-            ORDER BY name ASC
-        `, [branchId]);
-
-        res.json(result.rows);
-    } catch (err) {
-        res.status(500).json({ error: 'Failed to fetch inventory' });
-    }
-});
-
-// GET: Inventory List
+// GET: Inventory List (Admin)
 app.get('/api/admin/inventory', authenticateToken, verifyAdmin, async (req, res) => {
     try {
         const result = await db.query('SELECT * FROM medicines ORDER BY stock ASC');
@@ -1263,21 +1304,6 @@ app.get('/api/admin/logs', authenticateToken, verifyAdmin, async (req, res) => {
     }
 });
 
-// GET Current User Profile (Moved down to keep grouped)
-app.get('/api/auth/me', authenticateToken, async (req, res) => {
-    try {
-        const result = await db.query(`
-            SELECT u.id, u.name, u.email, u.role, p.hospital_name, p.city 
-            FROM users u 
-            LEFT JOIN user_profiles p ON u.id = p.user_id 
-            WHERE u.id = ?
-        `, [req.user.id]);
-
-        res.json(result.rows[0]);
-    } catch (err) {
-        res.status(500).json({ error: 'Failed to fetch profile' });
-    }
-});
 // GET: AI Predictions (Powered by ML Engine & ALN)
 app.get('/api/ai/predict', async (req, res) => {
     try {
@@ -1612,15 +1638,14 @@ app.post('/api/scan/barcode', async (req, res) => {
         // or assume batches are global for now?
         // Actually, for this hackathon fix, we heavily rely on the 'medicines' table fallback.
 
-        const branchId = req.body.branch_id || 1; // Default to Main Branch if not provided
-
+        // Strategy 1: Check medicine_batches table (batch-level tracking)
         let check = await db.query(`
             SELECT 
                 mb.id,
                 mb.batch_number,
                 mb.barcode,
-                mb.stock,
-                mb.sale_price as price,
+                mb.quantity as stock,
+                m.price,
                 mb.expiry_date,
                 mb.location,
                 mb.medicine_id,
@@ -1629,25 +1654,12 @@ app.post('/api/scan/barcode', async (req, res) => {
                 m.manufacturer,
                 'batch' as source_table
             FROM medicine_batches mb
-            JOIN medicines_master m ON m.id = mb.medicine_id
+            JOIN medicines m ON m.id = mb.medicine_id
             WHERE (UPPER(TRIM(mb.barcode)) = ? OR UPPER(TRIM(mb.batch_number)) = ?)
             LIMIT 1
         `, [sanitizedBarcode, sanitizedBarcode]);
 
-        // Strategy 2: Fallback to old medicines table (NOW WITH BRANCH SUPPORT)
-        if (check.rows.length === 0) {
-            check = await db.query(`
-                SELECT 
-                    *,
-                    'medicine' as source_table
-                FROM medicines 
-                WHERE (UPPER(TRIM(IFNULL(barcode, ''))) = ? OR UPPER(TRIM(batch_number)) = ?)
-                  AND branch_id = ?
-                LIMIT 1
-            `, [sanitizedBarcode, sanitizedBarcode, branchId]);
-        }
-
-        // Strategy 2: Fallback to old medicines table if not found in batches
+        // Strategy 2: Fallback to medicines table directly
         if (check.rows.length === 0) {
             check = await db.query(`
                 SELECT 
@@ -1692,7 +1704,7 @@ app.post('/api/scan/barcode', async (req, res) => {
             await connection.execute(`
                 INSERT INTO purchase_orders (id, medicine_id, quantity, estimated_cost, status)
                 VALUES (?, ?, ?, ?, 'Pending')
-            `, [orderId, item.id, 1, item.price]); // 1 unit, Pending
+            `, [orderId, item.medicine_id || item.id, 1, item.price]); // 1 unit, Pending
 
             await connection.commit();
 
